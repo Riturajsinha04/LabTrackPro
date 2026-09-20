@@ -1,0 +1,245 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container-fluid px-4 py-4">
+  <%- include('../partials/flash') %>
+
+  <!-- Admin Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
+    <div>
+      <h2 class="fw-bold mb-1 text-dark"><i class="bi bi-speedometer2 text-primary me-2"></i>Global Admin Dashboard</h2>
+      <p class="text-muted small mb-0">Overview of institutional assets, inventory distribution, overdue alerts, and damages.</p>
+    </div>
+    <div class="d-flex gap-2 mt-3 mt-md-0">
+      <a href="/admin/assets/new" class="btn btn-primary rounded-pill shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i> Add New Asset
+      </a>
+      <a href="/admin/users" class="btn btn-outline-dark rounded-pill">
+        <i class="bi bi-people me-1"></i> Manage Users
+      </a>
+    </div>
+  </div>
+
+  <!-- Global Stats Metric Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-primary border-4">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Distinct Assets</div>
+          <div class="fs-3 fw-bold text-dark mt-1"><%= stats.totalAssetsCount %></div>
+          <small class="text-muted"><i class="bi bi-box me-1"></i> Equipment Types</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-info border-4">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Total Units</div>
+          <div class="fs-3 fw-bold text-dark mt-1"><%= stats.totalUnits %></div>
+          <small class="text-muted"><i class="bi bi-layers me-1"></i> Inventory Stock</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-success border-4">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Available Stock</div>
+          <div class="fs-3 fw-bold text-success mt-1"><%= stats.availableUnits %></div>
+          <small class="text-muted"><i class="bi bi-check-circle me-1"></i> Ready for issue</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-warning border-4">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Currently Issued</div>
+          <div class="fs-3 fw-bold text-primary mt-1"><%= stats.totalIssuedUnits %></div>
+          <small class="text-muted"><i class="bi bi-arrow-right-circle me-1"></i> Checked out</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-danger border-4">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Overdue Returns</div>
+          <div class="fs-3 fw-bold text-danger mt-1"><%= stats.overdueCount %></div>
+          <small class="text-muted"><i class="bi bi-clock-history me-1"></i> Past return date</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 h-100 bg-white border-start border-dark border-4">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Damaged / Lost</div>
+          <div class="fs-3 fw-bold text-dark mt-1"><%= stats.damagedLostCount %></div>
+          <small class="text-muted"><i class="bi bi-exclamation-triangle me-1"></i> Requires attention</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart and Overview Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-pie-chart text-primary me-2"></i>Inventory Breakdown</h5>
+          <span class="badge bg-light text-dark border">Real-time</span>
+        </div>
+        <div class="card-body p-4 text-center">
+          <canvas id="inventoryChart" data-available="<%= stats.availableUnits %>" data-issued="<%= stats.totalIssuedUnits %>" data-overdue="<%= stats.overdueCount %>" style="max-height: 260px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-exclamation text-danger me-2"></i>Overdue Returns Alert List</h5>
+        </div>
+        <div class="card-body p-4">
+          <% if (overdueRequests.length === 0) { %>
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-check2-circle text-success fs-1"></i>
+              <p class="mt-2 mb-0">No overdue items at present. Great job!</p>
+            </div>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Asset Tag & Name</th>
+                    <th>Requester</th>
+                    <th>Expected Return</th>
+                    <th>Badge</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% overdueRequests.forEach(reqItem => { %>
+                    <tr>
+                      <td>
+                        <div class="fw-bold text-dark"><%= reqItem.asset ? reqItem.asset.name : 'N/A' %></div>
+                        <small class="text-muted"><%= reqItem.asset ? reqItem.asset.assetTag : 'N/A' %> (<%= reqItem.asset ? reqItem.asset.labLocation : '' %>)</small>
+                      </td>
+                      <td>
+                        <div><%= reqItem.requester ? reqItem.requester.name : 'N/A' %></div>
+                        <small class="text-muted"><%= reqItem.requester ? reqItem.requester.email : '' %></small>
+                      </td>
+                      <td class="text-danger fw-bold">
+                        <%= new Date(reqItem.expectedReturnDate).toLocaleDateString() %>
+                      </td>
+                      <td>
+                        <span class="badge bg-danger">OVERDUE</span>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Damaged & Lost Items Section -->
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+      <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-exclamation-octagon text-warning me-2"></i>Damaged / Lost Equipment Reports</h5>
+    </div>
+    <div class="card-body p-4">
+      <% if (damagedLostAssets.length === 0 && damagedLostReturns.length === 0) { %>
+        <p class="text-muted mb-0 text-center py-3">No equipment reported as damaged or lost.</p>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th>Asset Tag</th>
+                <th>Equipment Name</th>
+                <th>Lab Location</th>
+                <th>Condition</th>
+                <th>Total / Avail Qty</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% damagedLostAssets.forEach(ast => { %>
+                <tr>
+                  <td><span class="badge bg-secondary font-monospace"><%= ast.assetTag %></span></td>
+                  <td class="fw-bold"><%= ast.name %></td>
+                  <td><%= ast.labLocation %></td>
+                  <td>
+                    <span class="badge bg-<%= ast.condition === 'Damaged' ? 'warning text-dark' : 'danger' %>">
+                      <%= ast.condition %>
+                    </span>
+                  </td>
+                  <td><%= ast.totalQuantity %> / <%= ast.availableQuantity %></td>
+                  <td>
+                    <a href="/admin/assets/<%= ast._id %>/edit" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-pencil me-1"></i> Edit Asset
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+
+              <% damagedLostReturns.forEach(ret => { %>
+                <tr>
+                  <td><span class="badge bg-secondary font-monospace"><%= ret.asset ? ret.asset.assetTag : 'N/A' %></span></td>
+                  <td class="fw-bold"><%= ret.asset ? ret.asset.name : 'N/A' %></td>
+                  <td><%= ret.asset ? ret.asset.labLocation : 'N/A' %></td>
+                  <td>
+                    <span class="badge bg-<%= ret.conditionOnReturn === 'Damaged' ? 'warning text-dark' : 'danger' %>">
+                      Returned <%= ret.conditionOnReturn %> (Qty: <%= ret.quantity %>)
+                    </span>
+                  </td>
+                  <td><%= ret.asset ? ret.asset.totalQuantity + ' / ' + ret.asset.availableQuantity : 'N/A' %></td>
+                  <td>
+                    <span class="small text-muted">Returned by <%= ret.requester ? ret.requester.name : 'User' %></span>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('inventoryChart');
+    if (ctx) {
+      const avail = parseInt(ctx.dataset.available || '0', 10);
+      const issued = parseInt(ctx.dataset.issued || '0', 10);
+      const overdue = parseInt(ctx.dataset.overdue || '0', 10);
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Available Units', 'Issued Units', 'Overdue Returns'],
+          datasets: [{
+            data: [avail, issued, overdue],
+            backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

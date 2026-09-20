@@ -1,0 +1,98 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container-fluid px-4 py-4">
+  <%- include('../partials/flash') %>
+
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1 text-dark"><i class="bi bi-people text-primary me-2"></i>User Management & Permissions</h2>
+      <p class="text-muted small mb-0">Promote or demote user roles and assign lab locations to Lab In-charges.</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th class="ps-4">User</th>
+              <th>Email</th>
+              <th>Current Role</th>
+              <th>Assigned Lab</th>
+              <th>Registered Date</th>
+              <th class="text-end pe-4">Update Role & Permissions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(userItem => { %>
+              <tr>
+                <td class="ps-4">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-circle bg-primary text-white fw-bold">
+                      <%= userItem.name.charAt(0).toUpperCase() %>
+                    </div>
+                    <div class="fw-bold text-dark"><%= userItem.name %></div>
+                  </div>
+                </td>
+                <td class="text-muted"><%= userItem.email %></td>
+                <td>
+                  <% if (userItem.role === 'admin') { %>
+                    <span class="badge bg-danger">ADMIN</span>
+                  <% } else if (userItem.role === 'lab_incharge') { %>
+                    <span class="badge bg-primary">LAB IN-CHARGE</span>
+                  <% } else { %>
+                    <span class="badge bg-secondary">REQUESTER</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (userItem.role === 'lab_incharge' && userItem.assignedLab) { %>
+                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                      <i class="bi bi-geo-alt me-1"></i><%= userItem.assignedLab %>
+                    </span>
+                  <% } else { %>
+                    <span class="text-muted small">N/A</span>
+                  <% } %>
+                </td>
+                <td class="small text-muted"><%= new Date(userItem.createdAt).toLocaleDateString() %></td>
+                <td class="text-end pe-4">
+                  <form action="/admin/users/<%= userItem._id %>/role" method="POST" class="d-inline-flex gap-2 align-items-center justify-content-end">
+                    <select name="role" class="form-select form-select-sm w-auto" id="roleSelect_<%= userItem._id %>" onchange="toggleUserLabInput('<%= userItem._id %>')">
+                      <option value="requester" <%= userItem.role === 'requester' ? 'selected' : '' %>>Requester</option>
+                      <option value="lab_incharge" <%= userItem.role === 'lab_incharge' ? 'selected' : '' %>>Lab In-charge</option>
+                      <option value="admin" <%= userItem.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                    </select>
+
+                    <input type="text" name="assignedLab" id="labInput_<%= userItem._id %>" 
+                           class="form-control form-select-sm w-auto <%= userItem.role === 'lab_incharge' ? '' : 'd-none' %>" 
+                           placeholder="Assigned Lab" 
+                           value="<%= userItem.assignedLab || '' %>">
+
+                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill">
+                      <i class="bi bi-save me-1"></i> Save
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleUserLabInput(userId) {
+    const roleSelect = document.getElementById(`roleSelect_${userId}`);
+    const labInput = document.getElementById(`labInput_${userId}`);
+    if (roleSelect.value === 'lab_incharge') {
+      labInput.classList.remove('d-none');
+    } else {
+      labInput.classList.add('d-none');
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

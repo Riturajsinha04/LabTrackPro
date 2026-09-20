@@ -1,0 +1,81 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+
+      <%- include('../partials/flash') %>
+
+      <% if (errors && errors.length > 0) { %>
+        <div class="alert alert-danger shadow-sm mb-4">
+          <ul class="mb-0 ps-3">
+            <% errors.forEach(err => { %>
+              <li><%= err.msg %></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center border-0">
+          <div>
+            <h4 class="fw-bold mb-0">Submit Equipment Request</h4>
+            <p class="text-light opacity-75 small mb-0">Fill out request details for lab approval</p>
+          </div>
+          <i class="bi bi-box-seam fs-2 text-primary"></i>
+        </div>
+
+        <div class="card-body p-4 p-md-5 bg-white">
+
+          <!-- Asset Summary Banner -->
+          <div class="card bg-light border-0 mb-4 rounded-3 p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <span class="badge bg-secondary font-monospace"><%= asset.assetTag %></span>
+                <h5 class="fw-bold mt-1 mb-1 text-dark"><%= asset.name %></h5>
+                <p class="text-muted small mb-0"><i class="bi bi-geo-alt me-1"></i><%= asset.labLocation %> | <%= asset.category %></p>
+              </div>
+              <div class="text-end">
+                <small class="text-muted d-block">Available Stock</small>
+                <span class="fw-bold text-success fs-5"><%= asset.availableQuantity %> units</span>
+              </div>
+            </div>
+          </div>
+
+          <form action="/requester/request/<%= asset._id %>" method="POST">
+            
+            <div class="mb-3">
+              <label for="quantity" class="form-label fw-medium text-secondary">Quantity Requested <span class="text-danger">*</span></label>
+              <input type="number" class="form-control bg-light" id="quantity" name="quantity" value="<%= inputData.quantity || 1 %>" min="1" max="<%= asset.availableQuantity %>" required>
+              <small class="text-muted">Maximum available: <%= asset.availableQuantity %> unit(s).</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="purpose" class="form-label fw-medium text-secondary">Purpose of Issue <span class="text-danger">*</span></label>
+              <textarea class="form-control bg-light" id="purpose" name="purpose" rows="3" placeholder="State course project, lab practical session, research experiment..." required><%= inputData.purpose || '' %></textarea>
+            </div>
+
+            <div class="mb-4">
+              <label for="expectedReturnDate" class="form-label fw-medium text-secondary">Expected Return Date <span class="text-danger">*</span></label>
+              <% const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); const tomorrowStr = tomorrow.toISOString().split('T')[0]; %>
+              <input type="date" class="form-control bg-light" id="expectedReturnDate" name="expectedReturnDate" value="<%= inputData.expectedReturnDate || tomorrowStr %>" min="<%= tomorrowStr %>" required>
+              <small class="text-muted">Expected return date must be in the future.</small>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="/requester/browse" class="btn btn-outline-secondary px-4 rounded-pill">Cancel</a>
+              <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm">
+                <i class="bi bi-send me-1"></i> Submit Request
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

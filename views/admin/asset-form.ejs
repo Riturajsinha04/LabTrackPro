@@ -1,0 +1,143 @@
+<%- include('../partials/header') %>
+  <%- include('../partials/navbar') %>
+
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+
+          <%- include('../partials/flash') %>
+
+            <% if (errors && errors.length> 0) { %>
+              <div class="alert alert-danger shadow-sm mb-4">
+                <ul class="mb-0 ps-3">
+                  <% errors.forEach(err=> { %>
+                    <li>
+                      <%= err.msg %>
+                    </li>
+                    <% }) %>
+                </ul>
+              </div>
+              <% } %>
+
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                  <div
+                    class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center border-0">
+                    <div>
+                      <h4 class="fw-bold mb-0">
+                        <%= isEdit ? 'Edit Asset' : 'Add New Equipment Asset' %>
+                      </h4>
+                      <p class="text-light opacity-75 small mb-0">
+                        <%= isEdit ? 'Update details, quantity, or condition' : 'Fill in metadata and initial stock' %>
+                      </p>
+                    </div>
+                    <i class="bi <%= isEdit ? 'bi-pencil-square' : 'bi-plus-circle' %> fs-2 text-primary"></i>
+                  </div>
+
+                  <div class="card-body p-4 p-md-5 bg-white">
+                    <form action="<%= isEdit ? '/admin/assets/' + asset._id + '?_method=PUT' : '/admin/assets' %>"
+                      method="POST" data-is-edit="<%= isEdit %>">
+
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <label for="assetTag" class="form-label fw-medium text-secondary">Asset Tag <span
+                              class="text-danger">*</span></label>
+                          <input type="text" class="form-control bg-light text-uppercase font-monospace" id="assetTag"
+                            name="assetTag" value="<%= asset.assetTag || '' %>" placeholder="e.g. LAB-PHY-001" required>
+                          <small class="text-muted">Unique tag code for tracking.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                          <label for="name" class="form-label fw-medium text-secondary">Equipment Name <span
+                              class="text-danger">*</span></label>
+                          <input type="text" class="form-control bg-light" id="name" name="name"
+                            value="<%= asset.name || '' %>" placeholder="e.g. Digital Oscilloscope 100MHz" required>
+                        </div>
+                      </div>
+
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <label for="category" class="form-label fw-medium text-secondary">Category <span
+                              class="text-danger">*</span></label>
+                          <input type="text" class="form-control bg-light" id="category" name="category"
+                            value="<%= asset.category || '' %>" placeholder="e.g. Electronics, Optics, Computing"
+                            required>
+                        </div>
+
+                        <div class="col-md-6">
+                          <label for="labLocation" class="form-label fw-medium text-secondary">Lab Location <span
+                              class="text-danger">*</span></label>
+                          <input type="text" class="form-control bg-light" id="labLocation" name="labLocation"
+                            value="<%= asset.labLocation || '' %>" placeholder="e.g. Physics Lab, CS Lab" required>
+                        </div>
+                      </div>
+
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <label for="totalQuantity" class="form-label fw-medium text-secondary">Total Quantity <span
+                              class="text-danger">*</span></label>
+                          <input type="number" class="form-control bg-light" id="totalQuantity" name="totalQuantity"
+                            value="<%= asset.totalQuantity !== undefined ? asset.totalQuantity : 1 %>" min="0" required
+                            onchange="syncAvailableOnNew()">
+                        </div>
+
+                        <div class="col-md-6">
+                          <label for="availableQuantity" class="form-label fw-medium text-secondary">Available Quantity
+                            <span class="text-danger">*</span></label>
+                          <input type="number" class="form-control bg-light" id="availableQuantity"
+                            name="availableQuantity"
+                            value="<%= asset.availableQuantity !== undefined ? asset.availableQuantity : (asset.totalQuantity !== undefined ? asset.totalQuantity : 1) %>"
+                            min="0" required>
+                          <small class="text-muted">Must be &le; Total Quantity.</small>
+                        </div>
+                      </div>
+
+                      <div class="mb-3">
+                        <label for="condition" class="form-label fw-medium text-secondary">Condition State <span
+                            class="text-danger">*</span></label>
+                        <select class="form-select bg-light" id="condition" name="condition" required>
+                          <option value="OK" <%=asset.condition==='OK' ? 'selected' : '' %>>OK (Good Operating
+                            Condition)</option>
+                          <option value="Damaged" <%=asset.condition==='Damaged' ? 'selected' : '' %>>Damaged (Needs
+                            repair)</option>
+                          <option value="Lost" <%=asset.condition==='Lost' ? 'selected' : '' %>>Lost (Unusable /
+                            Missing)</option>
+                        </select>
+                      </div>
+
+                      <div class="mb-4">
+                        <label for="description" class="form-label fw-medium text-secondary">Description /
+                          Specifications</label>
+                        <textarea class="form-control bg-light" id="description" name="description" rows="3"
+                          placeholder="Model number, serial code, specifications, or notes..."><%= asset.description || '' %></textarea>
+                      </div>
+
+                      <div class="d-flex justify-content-end gap-2">
+                        <a href="/admin/assets" class="btn btn-outline-secondary px-4 rounded-pill">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm">
+                          <i class="bi <%= isEdit ? 'bi-check-lg' : 'bi-plus-lg' %> me-1"></i>
+                          <%= isEdit ? 'Update Asset' : 'Save Asset' %>
+                        </button>
+                      </div>
+
+                    </form>
+                  </div>
+                </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function syncAvailableOnNew() {
+        const form = document.querySelector('form[data-is-edit]');
+        const isEdit = form && form.getAttribute('data-is-edit') === 'true';
+        if (!isEdit) {
+          const totalInput = document.getElementById('totalQuantity');
+          const availInput = document.getElementById('availableQuantity');
+          if (totalInput && availInput) {
+            availInput.value = totalInput.value;
+          }
+        }
+      }
+    </script>
+
+    <%- include('../partials/footer') %>

@@ -1,0 +1,110 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+
+      <%- include('../partials/flash') %>
+
+      <% if (errors && errors.length > 0) { %>
+        <div class="alert alert-danger shadow-sm mb-4">
+          <ul class="mb-0 ps-3">
+            <% errors.forEach(err => { %>
+              <li><%= err.msg %></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white p-4 text-center border-0">
+          <div class="brand-badge mx-auto mb-2">
+            <i class="bi bi-person-plus fs-2 text-primary"></i>
+          </div>
+          <h4 class="fw-bold mb-1">Create Account</h4>
+          <p class="text-light opacity-75 small mb-0">Join the Lab Asset Management Platform</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5 bg-white">
+          <form action="/auth/register" method="POST">
+            
+            <div class="mb-3">
+              <label for="name" class="form-label fw-medium text-secondary">Full Name</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
+                <input type="text" class="form-control bg-light border-start-0" id="name" name="name" value="<%= inputData.name || '' %>" placeholder="John Doe" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label fw-medium text-secondary">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                <input type="email" class="form-control bg-light border-start-0" id="email" name="email" value="<%= inputData.email || '' %>" placeholder="student@institution.edu" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label fw-medium text-secondary">Password</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-shield-lock"></i></span>
+                <input type="password" class="form-control bg-light border-start-0" id="password" name="password" placeholder="Min. 6 characters" required minlength="6">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="role" class="form-label fw-medium text-secondary">Account Role</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person-badge"></i></span>
+                <select class="form-select bg-light border-start-0" id="role" name="role" required onchange="toggleAssignedLab()">
+                  <option value="requester" <%= inputData.role === 'requester' ? 'selected' : '' %>>Requester (Student / Staff)</option>
+                  <option value="lab_incharge" <%= inputData.role === 'lab_incharge' ? 'selected' : '' %>>Lab In-charge</option>
+                  <option value="admin" <%= inputData.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-4 <%= inputData.role === 'lab_incharge' ? '' : 'd-none' %>" id="labFieldGroup">
+              <label for="assignedLab" class="form-label fw-medium text-secondary">Assigned Lab Location <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-geo-alt"></i></span>
+                <input type="text" class="form-control bg-light border-start-0" id="assignedLab" name="assignedLab" value="<%= inputData.assignedLab || '' %>" placeholder="e.g. Physics Lab, CS Lab">
+              </div>
+              <small class="text-muted">Required only for Lab In-charge role to scope incoming request approvals.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-bold shadow-sm">
+              <i class="bi bi-check-circle me-2"></i> Register Account
+            </button>
+          </form>
+
+          <hr class="my-4 text-muted opacity-25">
+
+          <div class="text-center">
+            <p class="small text-muted mb-0">Already registered? <a href="/auth/login" class="fw-bold text-primary text-decoration-none">Sign in here</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleAssignedLab() {
+    const roleSelect = document.getElementById('role');
+    const labGroup = document.getElementById('labFieldGroup');
+    const labInput = document.getElementById('assignedLab');
+    
+    if (roleSelect.value === 'lab_incharge') {
+      labGroup.classList.remove('d-none');
+      labInput.setAttribute('required', 'required');
+    } else {
+      labGroup.classList.add('d-none');
+      labInput.removeAttribute('required');
+    }
+  }
+  document.addEventListener('DOMContentLoaded', toggleAssignedLab);
+</script>
+
+<%- include('../partials/footer') %>

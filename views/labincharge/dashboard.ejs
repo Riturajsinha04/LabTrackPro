@@ -1,0 +1,180 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container-fluid px-4 py-4">
+  <%- include('../partials/flash') %>
+
+  <!-- Lab In-charge Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
+    <div>
+      <span class="badge bg-primary text-white mb-1"><i class="bi bi-geo-alt me-1"></i><%= assignedLab %></span>
+      <h2 class="fw-bold mb-1 text-dark">Lab In-Charge Control Center</h2>
+      <p class="text-muted small mb-0">Manage issue approvals, active check-outs, overdue alerts, and physical returns for <%= assignedLab %>.</p>
+    </div>
+    <div class="d-flex gap-2 mt-3 mt-md-0">
+      <a href="/labincharge/requests" class="btn btn-primary rounded-pill shadow-sm">
+        <i class="bi bi-inbox me-1"></i> Pending Requests
+        <% if (stats.pendingRequestsCount > 0) { %>
+          <span class="badge bg-white text-primary ms-1"><%= stats.pendingRequestsCount %></span>
+        <% } %>
+      </a>
+      <a href="/labincharge/issued-items" class="btn btn-outline-dark rounded-pill">
+        <i class="bi bi-journal-arrow-up me-1"></i> Active Checkouts
+      </a>
+    </div>
+  </div>
+
+  <!-- Lab Scoped Metric Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 bg-white border-start border-primary border-4 h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Lab Assets</div>
+          <div class="fs-3 fw-bold text-dark mt-1"><%= stats.totalAssetsCount %></div>
+          <small class="text-muted">In <%= assignedLab %></small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 bg-white border-start border-info border-4 h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Total Stock</div>
+          <div class="fs-3 fw-bold text-dark mt-1"><%= stats.totalUnits %></div>
+          <small class="text-muted">Units total</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 bg-white border-start border-success border-4 h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Available</div>
+          <div class="fs-3 fw-bold text-success mt-1"><%= stats.availableUnits %></div>
+          <small class="text-muted">In stock</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 bg-white border-start border-warning border-4 h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Pending Requests</div>
+          <div class="fs-3 fw-bold text-warning-emphasis mt-1"><%= stats.pendingRequestsCount %></div>
+          <small class="text-muted">Needs decision</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 bg-white border-start border-primary border-4 h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Issued Out</div>
+          <div class="fs-3 fw-bold text-primary mt-1"><%= stats.totalIssuedUnits %></div>
+          <small class="text-muted">Active items</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="card border-0 shadow-sm rounded-3 bg-white border-start border-danger border-4 h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase font-weight-bold">Overdue Returns</div>
+          <div class="fs-3 fw-bold text-danger mt-1"><%= stats.overdueCount %></div>
+          <small class="text-muted">Requires follow up</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Incoming Pending Requests Preview -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-inbox text-warning me-2"></i>Recent Pending Approvals</h5>
+          <a href="/labincharge/requests" class="btn btn-sm btn-link text-primary text-decoration-none">View All</a>
+        </div>
+        <div class="card-body p-4">
+          <% if (recentPendingRequests.length === 0) { %>
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-check2-circle text-success fs-1"></i>
+              <p class="mt-2 mb-0">No pending issue requests for <%= assignedLab %>.</p>
+            </div>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Requester</th>
+                    <th>Asset & Qty</th>
+                    <th>Date & Purpose</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% recentPendingRequests.forEach(reqItem => { %>
+                    <tr>
+                      <td>
+                        <div class="fw-bold text-dark"><%= reqItem.requester ? reqItem.requester.name : 'N/A' %></div>
+                        <small class="text-muted"><%= reqItem.requester ? reqItem.requester.email : '' %></small>
+                      </td>
+                      <td>
+                        <div class="fw-bold"><%= reqItem.asset ? reqItem.asset.name : 'N/A' %></div>
+                        <span class="badge bg-info-subtle text-info-emphasis">Qty: <%= reqItem.quantity %></span>
+                      </td>
+                      <td>
+                        <small class="d-block text-muted"><%= new Date(reqItem.requestDate).toLocaleDateString() %></small>
+                        <small class="text-secondary text-truncate d-block" style="max-width: 150px;"><%= reqItem.purpose %></small>
+                      </td>
+                      <td class="text-end">
+                        <a href="/labincharge/requests" class="btn btn-sm btn-primary rounded-pill">Review</a>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overdue Table -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Lab Overdue Returns</h5>
+        </div>
+        <div class="card-body p-4">
+          <% if (overdueRequests.length === 0) { %>
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-emoji-smile fs-1 text-success"></i>
+              <p class="mt-2 mb-0">No overdue items in <%= assignedLab %>!</p>
+            </div>
+          <% } else { %>
+            <div class="list-group list-group-flush">
+              <% overdueRequests.forEach(reqItem => { %>
+                <div class="list-group-item px-0 py-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 class="fw-bold mb-0 text-dark"><%= reqItem.asset ? reqItem.asset.name : 'Asset' %> (Qty: <%= reqItem.quantity %>)</h6>
+                      <small class="text-muted">Issued to: <%= reqItem.requester ? reqItem.requester.name : 'User' %></small>
+                    </div>
+                    <span class="badge bg-danger rounded-pill">OVERDUE</span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mt-2 small">
+                    <span class="text-danger fw-medium">Due: <%= new Date(reqItem.expectedReturnDate).toLocaleDateString() %></span>
+                    <a href="/labincharge/return/<%= reqItem._id %>" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill">Process Return</a>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

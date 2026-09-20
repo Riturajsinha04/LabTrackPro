@@ -1,0 +1,115 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-4">
+  <%- include('../partials/flash') %>
+
+  <!-- Asset Header Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-dark text-white">
+    <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+      <div>
+        <span class="badge bg-primary font-monospace mb-2"><%= asset.assetTag %></span>
+        <h3 class="fw-bold mb-1"><%= asset.name %></h3>
+        <p class="text-light opacity-75 small mb-0">
+          <i class="bi bi-geo-alt me-1"></i> <%= asset.labLocation %> | 
+          <i class="bi bi-tag me-1"></i> <%= asset.category %> | 
+          Condition: <span class="badge bg-<%= asset.condition === 'OK' ? 'success' : 'warning text-dark' %>"><%= asset.condition %></span>
+        </p>
+      </div>
+      <div class="mt-3 mt-md-0">
+        <a href="/admin/assets" class="btn btn-outline-light btn-sm rounded-pill">
+          <i class="bi bi-arrow-left me-1"></i> Back to Assets List
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Log Entry Form -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-wrench-adjustable text-primary me-2"></i>Add Maintenance Log</h5>
+        </div>
+        <div class="card-body p-4">
+          <form action="/admin/assets/<%= asset._id %>/maintenance" method="POST">
+            <div class="mb-3">
+              <label for="serviceDate" class="form-label fw-medium text-secondary">Service Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control bg-light" id="serviceDate" name="serviceDate" value="<%= new Date().toISOString().split('T')[0] %>" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="cost" class="form-label fw-medium text-secondary">Service Cost ($)</label>
+              <input type="number" step="0.01" min="0" class="form-control bg-light" id="cost" name="cost" placeholder="0.00">
+            </div>
+
+            <div class="mb-3">
+              <label for="nextServiceDue" class="form-label fw-medium text-secondary">Next Service Due Date</label>
+              <input type="date" class="form-control bg-light" id="nextServiceDue" name="nextServiceDue">
+              <small class="text-muted">Will flag upcoming scheduled maintenance.</small>
+            </div>
+
+            <div class="mb-4">
+              <label for="notes" class="form-label fw-medium text-secondary">Service Notes / Summary <span class="text-danger">*</span></label>
+              <textarea class="form-control bg-light" id="notes" name="notes" rows="3" placeholder="Describe work done, replaced parts, calibration..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm">
+              <i class="bi bi-plus-lg me-1"></i> Save Maintenance Log
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Maintenance History Log List -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history text-secondary me-2"></i>Maintenance History</h5>
+        </div>
+        <div class="card-body p-4">
+          <% if (logs.length === 0) { %>
+            <div class="text-center text-muted py-5">
+              <i class="bi bi-journal-x fs-1 opacity-50"></i>
+              <p class="mt-2 mb-0">No maintenance records logged for this asset yet.</p>
+            </div>
+          <% } else { %>
+            <div class="timeline">
+              <% logs.forEach(log => { %>
+                <div class="card border mb-3 rounded-3 shadow-none">
+                  <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <div class="fw-bold text-dark">
+                        <i class="bi bi-calendar-event me-1 text-primary"></i>
+                        <%= new Date(log.serviceDate).toLocaleDateString() %>
+                      </div>
+                      <span class="badge bg-light text-dark border">$<%= log.cost.toFixed(2) %></span>
+                    </div>
+
+                    <p class="text-secondary small mb-2"><%= log.notes %></p>
+
+                    <div class="d-flex justify-content-between align-items-center small text-muted pt-2 border-top">
+                      <div>Logged by: <span class="fw-medium text-dark"><%= log.loggedBy ? log.loggedBy.name : 'System' %></span></div>
+                      <% if (log.nextServiceDue) { %>
+                        <% const isOverdue = new Date(log.nextServiceDue) < new Date(); %>
+                        <div>
+                          Next Due: 
+                          <span class="badge bg-<%= isOverdue ? 'danger' : 'info text-dark' %>">
+                            <%= new Date(log.nextServiceDue).toLocaleDateString() %>
+                          </span>
+                        </div>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

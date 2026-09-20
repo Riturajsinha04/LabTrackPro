@@ -1,0 +1,88 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+
+      <%- include('../partials/flash') %>
+
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center border-0">
+          <div>
+            <h4 class="fw-bold mb-0">Record Physical Return</h4>
+            <p class="text-light opacity-75 small mb-0">Inspect returned equipment condition</p>
+          </div>
+          <i class="bi bi-box-arrow-in-down fs-2 text-primary"></i>
+        </div>
+
+        <div class="card-body p-4 p-md-5 bg-white">
+
+          <!-- Summary Box -->
+          <div class="card bg-light border-0 mb-4 rounded-3 p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <span class="badge bg-secondary font-monospace"><%= request.asset ? request.asset.assetTag : '' %></span>
+                <h5 class="fw-bold mt-1 mb-1 text-dark"><%= request.asset ? request.asset.name : 'Asset' %></h5>
+                <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i><%= request.asset ? request.asset.labLocation : '' %></p>
+              </div>
+              <span class="badge bg-primary fs-6">Qty: <%= request.quantity %></span>
+            </div>
+            <hr class="my-2">
+            <div class="row g-2 small text-muted">
+              <div class="col-6"><strong>Requester:</strong> <%= request.requester ? request.requester.name : 'User' %></div>
+              <div class="col-6"><strong>Expected Return:</strong> <%= new Date(request.expectedReturnDate).toLocaleDateString() %></div>
+            </div>
+          </div>
+
+          <form action="/labincharge/return/<%= request._id %>" method="POST">
+
+            <div class="mb-4">
+              <label for="conditionOnReturn" class="form-label fw-bold text-dark">Physical Condition on Return <span class="text-danger">*</span></label>
+              <select class="form-select form-select-lg bg-light" id="conditionOnReturn" name="conditionOnReturn" required>
+                <option value="OK" selected>OK — In Good Working Order (Restock to available stock)</option>
+                <option value="Damaged">Damaged — Broken or Needs Repair (Do NOT restock; remove from total stock)</option>
+                <option value="Lost">Lost — Unreturned / Missing (Do NOT restock; remove from total stock)</option>
+              </select>
+            </div>
+
+            <!-- Dynamic Info Callout -->
+            <div class="alert alert-info border-0 rounded-3 mb-4 small" id="conditionNotice" data-quantity="<%= request.quantity %>">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              <span>Selecting <strong>OK</strong> will add <%= request.quantity %> unit(s) back into available stock.</span>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="/labincharge/issued-items" class="btn btn-outline-secondary px-4 rounded-pill">Cancel</a>
+              <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm">
+                <i class="bi bi-check-lg me-1"></i> Process Return
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('conditionOnReturn').addEventListener('change', function() {
+    const notice = document.getElementById('conditionNotice');
+    const val = this.value;
+    const qty = parseInt(notice.dataset.quantity || '1', 10);
+
+    if (val === 'OK') {
+      notice.className = 'alert alert-info border-0 rounded-3 mb-4 small';
+      notice.innerHTML = `<i class="bi bi-info-circle-fill me-2"></i><span>Selecting <strong>OK</strong> will add ${qty} unit(s) back into available stock.</span>`;
+    } else if (val === 'Damaged') {
+      notice.className = 'alert alert-warning border-0 rounded-3 mb-4 small';
+      notice.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i><span>Selecting <strong>Damaged</strong> will NOT restock available inventory, and will decrement Total Quantity by ${qty} unit(s).</span>`;
+    } else {
+      notice.className = 'alert alert-danger border-0 rounded-3 mb-4 small';
+      notice.innerHTML = `<i class="bi bi-x-circle-fill me-2"></i><span>Selecting <strong>Lost</strong> will mark item as lost and remove ${qty} unit(s) from total stock.</span>`;
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

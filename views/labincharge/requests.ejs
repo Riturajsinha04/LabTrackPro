@@ -1,0 +1,117 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container-fluid px-4 py-4">
+  <%- include('../partials/flash') %>
+
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+      <span class="badge bg-primary text-white mb-1"><i class="bi bi-geo-alt me-1"></i><%= assignedLab %></span>
+      <h2 class="fw-bold mb-1 text-dark"><i class="bi bi-inbox text-primary me-2"></i>Pending Issue Requests</h2>
+      <p class="text-muted small mb-0">Review student/staff requests for equipment located in <%= assignedLab %>.</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+      <% if (requests.length === 0) { %>
+        <div class="text-center py-5">
+          <i class="bi bi-check-circle fs-1 text-success opacity-75"></i>
+          <h5 class="mt-3 text-secondary">All Caught Up!</h5>
+          <p class="text-muted small">There are currently no pending issue requests for <%= assignedLab %>.</p>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th class="ps-4">Requester</th>
+                <th>Equipment Asset</th>
+                <th>Requested Qty</th>
+                <th>Stock Available</th>
+                <th>Purpose</th>
+                <th>Expected Return</th>
+                <th class="text-end pe-4">Approve / Reject Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% requests.forEach(reqItem => { %>
+                <% const isStockSufficient = reqItem.asset && reqItem.asset.availableQuantity >= reqItem.quantity; %>
+                <tr>
+                  <td class="ps-4">
+                    <div class="fw-bold text-dark"><%= reqItem.requester ? reqItem.requester.name : 'Unknown User' %></div>
+                    <small class="text-muted"><%= reqItem.requester ? reqItem.requester.email : '' %></small>
+                  </td>
+                  <td>
+                    <div class="fw-bold"><%= reqItem.asset ? reqItem.asset.name : 'N/A' %></div>
+                    <small class="text-muted"><span class="badge bg-light text-dark border"><%= reqItem.asset ? reqItem.asset.assetTag : '' %></span></small>
+                  </td>
+                  <td>
+                    <span class="badge bg-primary fs-6"><%= reqItem.quantity %></span>
+                  </td>
+                  <td>
+                    <span class="fw-bold <%= isStockSufficient ? 'text-success' : 'text-danger' %>">
+                      <%= reqItem.asset ? reqItem.asset.availableQuantity : 0 %> / <%= reqItem.asset ? reqItem.asset.totalQuantity : 0 %>
+                    </span>
+                    <% if (!isStockSufficient) { %>
+                      <small class="d-block text-danger font-monospace">Low Stock!</small>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="text-secondary small text-wrap" style="max-width: 200px;"><%= reqItem.purpose %></div>
+                  </td>
+                  <td>
+                    <div class="small fw-medium"><%= new Date(reqItem.expectedReturnDate).toLocaleDateString() %></div>
+                  </td>
+                  <td class="text-end pe-4">
+                    <div class="d-flex justify-content-end gap-2">
+                      <form action="/labincharge/requests/<%= reqItem._id %>/approve" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3" <%= !isStockSufficient ? 'disabled' : '' %> title="<%= !isStockSufficient ? 'Insufficient available stock to approve' : 'Approve & Issue' %>">
+                          <i class="bi bi-check-lg me-1"></i> Approve
+                        </button>
+                      </form>
+
+                      <!-- Reject Modal Button -->
+                      <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#rejectModal_<%= reqItem._id %>">
+                        <i class="bi bi-x-lg me-1"></i> Reject
+                      </button>
+                    </div>
+
+                    <!-- Reject Modal -->
+                    <div class="modal fade text-start" id="rejectModal_<%= reqItem._id %>" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                          <div class="modal-header bg-danger text-white border-0">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-x-circle me-2"></i>Reject Issue Request</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                          </div>
+                          <form action="/labincharge/requests/<%= reqItem._id %>/reject" method="POST">
+                            <div class="modal-body p-4">
+                              <p>Are you sure you want to reject the request for <strong><%= reqItem.asset ? reqItem.asset.name : 'Asset' %></strong> (Qty: <%= reqItem.quantity %>) by <strong><%= reqItem.requester ? reqItem.requester.name : 'Requester' %></strong>?</p>
+                              
+                              <div class="mb-3">
+                                <label for="rejectionRemark_<%= reqItem._id %>" class="form-label fw-medium text-secondary">Rejection Remark (Optional)</label>
+                                <textarea class="form-control" id="rejectionRemark_<%= reqItem._id %>" name="rejectionRemark" rows="3" placeholder="Provide a reason for rejection (e.g., Reserved for lab exam, maintenance scheduled)..."></textarea>
+                              </div>
+                            </div>
+                            <div class="modal-footer border-0 bg-light">
+                              <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                              <button type="submit" class="btn btn-danger rounded-pill fw-bold">Confirm Rejection</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

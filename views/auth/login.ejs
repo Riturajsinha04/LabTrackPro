@@ -1,0 +1,63 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+
+      <%- include('../partials/flash') %>
+
+      <% if (errors && errors.length > 0) { %>
+        <div class="alert alert-danger shadow-sm mb-4">
+          <ul class="mb-0 ps-3">
+            <% errors.forEach(err => { %>
+              <li><%= err.msg %></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white p-4 text-center border-0">
+          <div class="brand-badge mx-auto mb-2">
+            <i class="bi bi-person-lock fs-2 text-primary"></i>
+          </div>
+          <h4 class="fw-bold mb-1">Welcome Back</h4>
+          <p class="text-light opacity-75 small mb-0">Sign in to Lab Equipment & Asset System</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5 bg-white">
+          <form action="/auth/login" method="POST">
+            <div class="mb-3">
+              <label for="email" class="form-label fw-medium text-secondary">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                <input type="email" class="form-control bg-light border-start-0" id="email" name="email" value="<%= inputData.email || '' %>" placeholder="name@institution.edu" required autofocus>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="password" class="form-label fw-medium text-secondary">Password</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-key"></i></span>
+                <input type="password" class="form-control bg-light border-start-0" id="password" name="password" placeholder="••••••••" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-bold shadow-sm">
+              <i class="bi bi-box-arrow-in-right me-2"></i> Log In
+            </button>
+          </form>
+
+          <hr class="my-4 text-muted opacity-25">
+
+          <div class="text-center">
+            <p class="small text-muted mb-0">Don't have an account? <a href="/auth/register" class="fw-bold text-primary text-decoration-none">Register here</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
