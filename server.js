@@ -56,17 +56,6 @@ app.use('/labincharge', labInchargeRoutes);
 app.use('/requester', requesterRoutes);
 app.use('/', dashboardRoutes);
 
-// Debug route — shows session state (remove after fixing)
-app.get('/debug', (req, res) => {
-  res.json({
-    session: req.session,
-    user: req.session ? req.session.user : null,
-    env: process.env.NODE_ENV,
-    mongoUri: process.env.MONGO_URI ? 'SET' : 'NOT SET',
-    sessionSecret: process.env.SESSION_SECRET ? 'SET' : 'NOT SET'
-  });
-});
-
 // 404 Page Not Found Handler
 app.use((req, res) => {
   res.status(404).send(`
