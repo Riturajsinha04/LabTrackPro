@@ -20,6 +20,9 @@ const setupApp = async () => {
   // Connect Database
   await connectDB();
 
+  // Trust proxy (required for secure cookies behind Vercel's reverse proxy)
+  app.set('trust proxy', 1);
+
   // View Engine Setup (EJS)
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
@@ -63,24 +66,25 @@ const setupApp = async () => {
   app.use('/requester', requesterRoutes);
   app.use('/', dashboardRoutes);
 
-  // 404 Page Not Found Handler
+  // 404 Page Not Found Handler — send simple HTML (no redirects to avoid loops)
   app.use((req, res) => {
-    // If user is logged in, redirect to their dashboard
-    if (req.session && req.session.user) {
-      const role = req.session.user.role;
-      if (role === 'admin') return res.redirect('/admin/dashboard');
-      if (role === 'lab_incharge') return res.redirect('/labincharge/dashboard');
-      return res.redirect('/requester/browse');
-    }
-    // Not logged in — just go to login
-    res.redirect('/auth/login');
+    res.status(404).send(`
+      <!DOCTYPE html><html><head><title>404</title>
+      <style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#1a1a2e;color:#fff;}
+      .box{text-align:center}.box h1{font-size:4rem;margin:0;color:#6c63ff}.box a{color:#6c63ff;text-decoration:none;font-weight:bold;}</style></head>
+      <body><div class="box"><h1>404</h1><p>Page not found</p><a href="/auth/login">← Go to Login</a></div></body></html>
+    `);
   });
 
-  // Global Error Handler
+  // Global Error Handler — send simple HTML (no redirects to avoid loops)
   app.use((err, req, res, next) => {
     console.error('[Server Error]', err.stack);
-    req.flash('error', 'An unexpected server error occurred.');
-    res.redirect('/auth/login');
+    res.status(500).send(`
+      <!DOCTYPE html><html><head><title>500</title>
+      <style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#1a1a2e;color:#fff;}
+      .box{text-align:center}.box h1{font-size:4rem;margin:0;color:#ef4444}.box a{color:#6c63ff;text-decoration:none;font-weight:bold;}</style></head>
+      <body><div class="box"><h1>500</h1><p>Something went wrong</p><a href="/auth/login">← Go to Login</a></div></body></html>
+    `);
   });
 
   isSetup = true;
