@@ -65,21 +65,22 @@ const setupApp = async () => {
 
   // 404 Page Not Found Handler
   app.use((req, res) => {
-    res.status(404).render('auth/login', {
-      title: '404 - Page Not Found',
-      errors: [{ msg: 'The page you requested could not be found.' }],
-      inputData: {}
-    });
+    // If user is logged in, redirect to their dashboard
+    if (req.session && req.session.user) {
+      const role = req.session.user.role;
+      if (role === 'admin') return res.redirect('/admin/dashboard');
+      if (role === 'lab_incharge') return res.redirect('/labincharge/dashboard');
+      return res.redirect('/requester/browse');
+    }
+    // Not logged in — just go to login
+    res.redirect('/auth/login');
   });
 
   // Global Error Handler
   app.use((err, req, res, next) => {
     console.error('[Server Error]', err.stack);
-    res.status(500).render('auth/login', {
-      title: '500 - Server Error',
-      errors: [{ msg: 'An unexpected internal server error occurred.' }],
-      inputData: {}
-    });
+    req.flash('error', 'An unexpected server error occurred.');
+    res.redirect('/auth/login');
   });
 
   isSetup = true;
