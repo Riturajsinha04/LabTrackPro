@@ -56,6 +56,17 @@ app.use('/labincharge', labInchargeRoutes);
 app.use('/requester', requesterRoutes);
 app.use('/', dashboardRoutes);
 
+// Debug route — shows session state (remove after fixing)
+app.get('/debug', (req, res) => {
+  res.json({
+    session: req.session,
+    user: req.session ? req.session.user : null,
+    env: process.env.NODE_ENV,
+    mongoUri: process.env.MONGO_URI ? 'SET' : 'NOT SET',
+    sessionSecret: process.env.SESSION_SECRET ? 'SET' : 'NOT SET'
+  });
+});
+
 // 404 Page Not Found Handler
 app.use((req, res) => {
   res.status(404).send(`
@@ -79,8 +90,13 @@ app.use((err, req, res, next) => {
 
 // For Vercel: wrap with DB connection per request
 const serverlessHandler = async (req, res) => {
-  await connectDB();
-  return app(req, res);
+  try {
+    await connectDB();
+    return app(req, res);
+  } catch (err) {
+    console.error('[Vercel Handler Error]', err);
+    res.status(500).send(`<h1>Startup Error</h1><pre>${err.message}</pre>`);
+  }
 };
 
 // For local development
