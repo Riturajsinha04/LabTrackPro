@@ -50,15 +50,23 @@ const postLogin = async (req, res) => {
     };
 
     req.flash('success', `Welcome back, ${user.name}!`);
-    
-    // Redirect based on role
-    if (user.role === 'admin') {
-      res.redirect('/admin/dashboard');
-    } else if (user.role === 'lab_incharge') {
-      res.redirect('/labincharge/dashboard');
-    } else {
-      res.redirect('/requester/browse');
-    }
+
+    // Explicitly save session to MongoDB BEFORE redirecting
+    // (critical on serverless — redirect must wait for session write)
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error('Session save error:', saveErr);
+        req.flash('error', 'Session error. Please try again.');
+        return res.redirect('/auth/login');
+      }
+      if (user.role === 'admin') {
+        return res.redirect('/admin/dashboard');
+      } else if (user.role === 'lab_incharge') {
+        return res.redirect('/labincharge/dashboard');
+      } else {
+        return res.redirect('/requester/browse');
+      }
+    });
   } catch (err) {
     console.error('Login error:', err);
     req.flash('error', 'Server error during login.');

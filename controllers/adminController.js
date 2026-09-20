@@ -56,8 +56,13 @@ const getDashboard = async (req, res) => {
     });
   } catch (err) {
     console.error('Admin Dashboard Error:', err);
-    req.flash('error', 'Error loading admin dashboard metrics.');
-    res.redirect('/');
+    res.status(500).send(`
+      <!DOCTYPE html><html><head><title>Dashboard Error</title>
+      <style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#1a1a2e;color:#fff;}
+      .box{text-align:center;padding:2rem}.box h2{color:#ef4444}.box pre{text-align:left;background:#2d2d4e;padding:1rem;border-radius:8px;overflow:auto;font-size:12px;}
+      .box a{color:#6c63ff;text-decoration:none;font-weight:bold;}</style></head>
+      <body><div class="box"><h2>Dashboard Error</h2><p>${err.message}</p><a href="/auth/login">← Go to Login</a></div></body></html>
+    `);
   }
 };
 
