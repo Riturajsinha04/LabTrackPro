@@ -9,8 +9,8 @@ router.use(isLoggedIn);
 router.use(hasRole('admin'));
 router.use(updateOverdueRequests);
 
-// Dashboard
-router.get('/dashboard', adminController.getDashboard);
+// Dashboard (support both GET and POST redirects)
+router.all('/dashboard', adminController.getDashboard);
 
 // Asset Management CRUD
 router.get('/assets', adminController.getAssets);

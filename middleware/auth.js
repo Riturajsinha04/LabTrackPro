@@ -27,11 +27,11 @@ const hasRole = (...roles) => {
     // Redirect user to their appropriate dashboard based on role
     const userRole = req.session.user.role;
     if (userRole === 'admin') {
-      return res.redirect('/admin/dashboard');
+      return res.redirect(303, '/admin/dashboard');
     } else if (userRole === 'lab_incharge') {
-      return res.redirect('/labincharge/dashboard');
+      return res.redirect(303, '/labincharge/dashboard');
     } else {
-      return res.redirect('/requester/browse');
+      return res.redirect(303, '/requester/browse');
     }
   };
 };

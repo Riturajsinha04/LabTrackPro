@@ -57,14 +57,14 @@ const postLogin = async (req, res) => {
       if (saveErr) {
         console.error('Session save error:', saveErr);
         req.flash('error', 'Session error. Please try again.');
-        return res.redirect('/auth/login');
+        return res.redirect(303, '/auth/login');
       }
       if (user.role === 'admin') {
-        return res.redirect('/admin/dashboard');
+        return res.redirect(303, '/admin/dashboard');
       } else if (user.role === 'lab_incharge') {
-        return res.redirect('/labincharge/dashboard');
+        return res.redirect(303, '/labincharge/dashboard');
       } else {
-        return res.redirect('/requester/browse');
+        return res.redirect(303, '/requester/browse');
       }
     });
   } catch (err) {

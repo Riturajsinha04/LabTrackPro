@@ -10,11 +10,11 @@ router.use(hasRole('requester', 'admin', 'lab_incharge')); // Admin and Lab In-c
 router.use(updateOverdueRequests);
 
 // Browse Assets & Submit Request
-router.get('/browse', requesterController.getBrowseAssets);
+router.all('/browse', requesterController.getBrowseAssets);
 router.get('/request/:assetId', requesterController.getRequestForm);
 router.post('/request/:assetId', validateIssueRequest, requesterController.postSubmitRequest);
 
 // Personal Request History
-router.get('/my-requests', requesterController.getMyRequests);
+router.all('/my-requests', requesterController.getMyRequests);
 
 module.exports = router;
