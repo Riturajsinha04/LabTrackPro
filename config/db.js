@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  // If already connected, skip
+  if (mongoose.connection.readyState === 1) return;
+
   const primaryUri = process.env.MONGO_URI;
   const localUri = 'mongodb://127.0.0.1:27017/lab_tracking_system';
 
@@ -8,7 +11,7 @@ const connectDB = async () => {
     try {
       console.log(`[Database] Attempting connection to primary MongoDB Atlas...`);
       const conn = await mongoose.connect(primaryUri, {
-        serverSelectionTimeoutMS: 3000
+        serverSelectionTimeoutMS: 5000
       });
       console.log(`[Database] MongoDB Connected: ${conn.connection.host}`);
       return;
@@ -27,9 +30,8 @@ const connectDB = async () => {
     });
     console.log(`[Database] Local MongoDB Connected: ${conn.connection.host}`);
   } catch (err) {
-    console.error(`[Database Error] Could not connect to local MongoDB: ${err.message}`);
-    console.error(`[Database Error] Please ensure MongoDB service is running locally.`);
-    process.exit(1);
+    console.error(`[Database Error] Could not connect to any MongoDB: ${err.message}`);
+    throw new Error('Database connection failed');
   }
 };
 

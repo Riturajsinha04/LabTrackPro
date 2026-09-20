@@ -3,16 +3,20 @@ const express = require('express');
 const path = require('path');
 const methodOverride = require('method-override');
 const flash = require('connect-flash');
-const cron = require('node-cron');
+const mongoose = require('mongoose');
 
 const connectDB = require('./config/db');
 const createSessionConfig = require('./config/session');
-const { updateOverdueRequests } = require('./middleware/auth');
 
 // Initialize Express App
 const app = express();
 
-const startServer = async () => {
+// Track if middleware is set up (for serverless cold starts)
+let isSetup = false;
+
+const setupApp = async () => {
+  if (isSetup) return;
+
   // Connect Database
   await connectDB();
 
@@ -43,12 +47,6 @@ const startServer = async () => {
       info: req.flash('info')
     };
     next();
-  });
-
-  // Scheduled Overdue Items Cron Check (Runs every hour)
-  cron.schedule('0 * * * *', async () => {
-    console.log('[Cron] Checking and updating overdue asset issue requests...');
-    await updateOverdueRequests();
   });
 
   // Import Routes
@@ -84,14 +82,32 @@ const startServer = async () => {
     });
   });
 
-  // Start Server
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`====================================================`);
-    console.log(`🚀 Lab Equipment System running on http://localhost:${PORT}`);
-    console.log(`====================================================`);
-  });
+  isSetup = true;
 };
 
-startServer();
+// For local development: start with app.listen
+if (process.env.NODE_ENV !== 'production') {
+  const cron = require('node-cron');
+  const { updateOverdueRequests } = require('./middleware/auth');
 
+  setupApp().then(() => {
+    // Scheduled Overdue Items Cron Check (Runs every hour) — local only
+    cron.schedule('0 * * * *', async () => {
+      console.log('[Cron] Checking and updating overdue asset issue requests...');
+      await updateOverdueRequests();
+    });
+
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`====================================================`);
+      console.log(`🚀 Lab Equipment System running on http://localhost:${PORT}`);
+      console.log(`====================================================`);
+    });
+  });
+}
+
+// For Vercel: export the app after setup
+module.exports = async (req, res) => {
+  await setupApp();
+  return app(req, res);
+};
